@@ -1,0 +1,55 @@
+
+name: Android APK Olustur
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Depoyu al
+        uses: actions/checkout@v4
+
+      - name: ZIP projesini ac
+        shell: bash
+        run: |
+          ZIP=$(find . -maxdepth 1 -name 'ReplayGeriyeDonuk_APK_Derleme_Hazir*.zip' -type f | head -n 1)
+          if [ -z "$ZIP" ]; then
+            echo "ZIP dosyasi bulunamadi"
+            exit 1
+          fi
+          unzip -o "$ZIP" -d .
+          test -f app/build.gradle
+
+      - name: Java kur
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Android SDK kur
+        uses: android-actions/setup-android@v3
+
+      - name: Android 35 kur
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Gradle kur
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: APK derle
+        run: gradle --no-daemon :app:assembleDebug
+
+      - name: APK dosyasini yukle
+        uses: actions/upload-artifact@v4
+        with:
+          name: Replay60saniye-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          
